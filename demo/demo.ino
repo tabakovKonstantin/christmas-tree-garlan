@@ -10,23 +10,26 @@ CRGB leds[NUM_LEDS];
 
 #define UPDATES_PER_SECOND 100
 
-// This example shows several ways to set up and use 'palettes' of colors
-// with FastLED.
-//
-// These compact palettes provide an easy way to re-colorize your
-// animation on the fly, quickly, easily, and with low overhead.
-//
-// USING palettes is MUCH simpler in practice than in theory, so first just
-// run this sketch, and watch the pretty lights as you then read through
-// the code.  Although this sketch has eight (or more) different color schemes,
-// the entire sketch compiles down to about 6.5K on AVR.
-//
-// FastLED provides a few pre-configured color palettes, and makes it
-// extremely easy to make up your own color schemes with palettes.
-//
-// Some notes on the more abstract 'theory and practice' of
-// FastLED compact palettes are at the bottom of this file.
+#include <Arduino.h>
+#ifdef ESP32
+#include <WiFi.h>
+#include <AsyncTCP.h>
+#elif defined(ESP8266)
+#include <ESP8266WiFi.h>
+#include <ESPAsyncTCP.h>
+#endif
+#include <ESPAsyncWebServer.h>
 
+AsyncWebServer server(80);
+
+const char* ssid = "A1_CA2F";
+const char* password = "48575443202C3FAA";
+
+const char* PARAM_MESSAGE = "message";
+
+void notFound(AsyncWebServerRequest *request) {
+    request->send(404, "text/plain", "Not found");
+}
 
 
 CRGBPalette16 currentPalette;
@@ -37,6 +40,49 @@ extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
 
 
 void setup() {
+
+    Serial.begin(115200);
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, password);
+    if (WiFi.waitForConnectResult() != WL_CONNECTED) {
+        Serial.printf("WiFi Failed!\n");
+        return;
+    }
+
+    Serial.print("IP Address: ");
+    Serial.println(WiFi.localIP());
+
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+        ChangePalettePeriodically();
+        request->send(200, "text/plain", "Hello, world");
+    });
+
+    // Send a GET request to <IP>/get?message=<message>
+    server.on("/get", HTTP_GET, [] (AsyncWebServerRequest *request) {
+        String message;
+        if (request->hasParam(PARAM_MESSAGE)) {
+            message = request->getParam(PARAM_MESSAGE)->value();
+        } else {
+            message = "No message sent";
+        }
+        request->send(200, "text/plain", "Hello, GET: " + message);
+    });
+
+    // Send a POST request to <IP>/post with a form field message set to <message>
+    server.on("/post", HTTP_POST, [](AsyncWebServerRequest *request){
+        String message;
+        if (request->hasParam(PARAM_MESSAGE, true)) {
+            message = request->getParam(PARAM_MESSAGE, true)->value();
+        } else {
+            message = "No message sent";
+        }
+        request->send(200, "text/plain", "Hello, POST: " + message);
+    });
+
+    server.onNotFound(notFound);
+
+    server.begin();
+
     delay( 3000 ); // power-up safety delay
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
     FastLED.setBrightness(  BRIGHTNESS );
@@ -48,7 +94,6 @@ void setup() {
 
 void loop()
 {
-    ChangePalettePeriodically();
     
     static uint8_t startIndex = 0;
     startIndex = startIndex + 1; /* motion speed */
