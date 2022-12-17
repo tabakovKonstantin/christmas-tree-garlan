@@ -2,7 +2,7 @@
 #include <FastLED.h>
 
 #define LED_PIN     0
-#define NUM_LEDS    100
+#define NUM_LEDS    200
 #define BRIGHTNESS  50
 #define LED_TYPE    SK6812
 #define COLOR_ORDER RGB
@@ -47,17 +47,37 @@ extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
 
 void setup() {
 
+    FastLED.clear(true);
+    delay( 3000 ); // power-up safety delay
+    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
+    FastLED.setBrightness(  BRIGHTNESS );
+
+    // for( int i = 0; i < NUM_LEDS; ++i) {
+    //     leds[i] = CRGB::ForestGreen;
+    //     FastLED.show();
+    // }
+    
+
     Serial.begin(115200);
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
     if (WiFi.waitForConnectResult() != WL_CONNECTED) {
         Serial.printf("WiFi Failed!\n");
-        return;
+        for( int i = 0; i < NUM_LEDS; ++i) {
+            leds[i] = CRGB::Red;
+            FastLED.show();
+        }
+        //return;
     }
 
     Serial.print("IP Address: ");
     Serial.println(WiFi.localIP());
+    for( int i = 0; i < NUM_LEDS; ++i) {
+      leds[i] = CRGB::Green;
+      FastLED.show();
+    }
 
+    delay( 3000 );
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
         // ChangePalettePeriodically();
         changePalette(palettes, &currentPalette, &currentBlending);
@@ -90,9 +110,6 @@ void setup() {
 
     server.begin();
 
-    delay( 3000 ); // power-up safety delay
-    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
-    FastLED.setBrightness(  BRIGHTNESS );
     
     initPalettes();
     currentPalette = OceanColors_p;
@@ -119,7 +136,7 @@ void FillLEDsFromPaletteColors( uint8_t colorIndex)
         leds[i] = ColorFromPalette( currentPalette, colorIndex, brightness, currentBlending);
         colorIndex += 3;
     }
-}
+}               
 
 void initPalettes()
 {
@@ -131,8 +148,68 @@ void initPalettes()
     palettes.push_back(std::pair<CRGBPalette16, TBlendType>(RainbowColors_p, LINEARBLEND));
     palettes.push_back(std::pair<CRGBPalette16, TBlendType>(RainbowStripeColors_p, LINEARBLEND));
     palettes.push_back(std::pair<CRGBPalette16, TBlendType>(RainbowStripeColors_p, NOBLEND));
+    palettes.push_back(std::pair<CRGBPalette16, TBlendType>(HeatColors_p, NOBLEND));
+    palettes.push_back(std::pair<CRGBPalette16, TBlendType>(HeatColors_p, LINEARBLEND));
+    palettes.push_back(std::pair<CRGBPalette16, TBlendType>(myRedWhiteBluePalette_p, NOBLEND));
+    palettes.push_back(std::pair<CRGBPalette16, TBlendType>(myRedWhiteBluePalette_p, LINEARBLEND));
+    palettes.push_back(std::pair<CRGBPalette16, TBlendType>(SetupPurpleAndGreenPalette(), NOBLEND));
+    palettes.push_back(std::pair<CRGBPalette16, TBlendType>(SetupPurpleAndGreenPalette(), LINEARBLEND));
+    palettes.push_back(std::pair<CRGBPalette16, TBlendType>(SetupBlackAndWhiteStripedPalette(), NOBLEND));
+    palettes.push_back(std::pair<CRGBPalette16, TBlendType>(SetupBlackAndWhiteStripedPalette(), LINEARBLEND));
     
 }
+
+CRGBPalette16 SetupBlackAndWhiteStripedPalette()
+{
+  CRGBPalette16 currentPalette1 =  CRGBPalette16();
+  // 'black out' all 16 palette entries...
+  fill_solid( currentPalette1, 16, CRGB::Black);
+  // and set every fourth one to white.
+  currentPalette1[0] = CRGB::White;
+  currentPalette1[4] = CRGB::White;
+  currentPalette1[8] = CRGB::White;
+  currentPalette1[12] = CRGB::White;
+
+  return currentPalette1;
+
+}
+
+// This function sets up a palette of purple and green stripes.
+CRGBPalette16 SetupPurpleAndGreenPalette()
+{
+  CRGB purple = CHSV( HUE_PURPLE, 255, 255);
+  CRGB green  = CHSV( HUE_GREEN, 255, 255);
+  CRGB black  = CRGB::Black;
+  
+  return CRGBPalette16( 
+    green,  green,  black,  black,
+    purple, purple, black,  black,
+    green,  green,  black,  black,
+    purple, purple, black,  black );
+}
+
+
+const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM =
+{
+  CRGB::Red,
+  CRGB::Gray, // 'white' is too bright compared to red and blue
+  CRGB::Blue,
+  CRGB::Black,
+
+  CRGB::Red,
+  CRGB::Gray,
+  CRGB::Blue,
+  CRGB::Black,
+
+  CRGB::Red,
+  CRGB::Red,
+  CRGB::Gray,
+  CRGB::Gray,
+  CRGB::Blue,
+  CRGB::Blue,
+  CRGB::Black,
+  CRGB::Black
+};
 
 void changePalette(std::vector<std::pair<CRGBPalette16, TBlendType>> palettes, CRGBPalette16 *currentPalette, TBlendType *currentBlending)
 {
