@@ -4,6 +4,7 @@
 #include "FileManager.h"
 #include "ConfigManager.h"
 #include "MqttManager.h"
+#include "LedControl.h"
 
 MqttManager mqttManager;
 
@@ -18,15 +19,23 @@ void setup() {
 
     initWiFi();
 
-     Config config;
-     ConfigManager::loadConfig(config);
-     Serial.println(config.toJson());
+    //  Config config;
+    //  ConfigManager::loadConfig(config);
+    //  Serial.println(config.toJson());
 
-    mqttManager.initMQTT();
+    //mqttManager.initMQTT();
+
+    //delay(3000); // power-up safety delay
+    initLEDs();
+    uint32_t color = (123 << 16) | (124 << 8) | 23;
+    setLEDColor(color);
+    
    
 }
 
 void loop() {
-  mqttManager.handleMQTT();
+ 
+    
+  //mqttManager.handleMQTT();
     // put your main code here, to run repeatedly:   
 }
