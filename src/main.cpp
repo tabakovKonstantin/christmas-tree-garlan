@@ -1,11 +1,23 @@
 // #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 #include <Arduino.h>
 #include "ConnectManager.h"
+#include "FileManager.h"
+#include "ConfigManager.h"
 
 void setup() {
    Serial.begin(115200);
 
+    if (!FileManager::begin())
+    {
+        Serial.println("Ошибка инициализации файловой системы!");
+        return;
+    }
+
     initWiFi();
+
+     Config config;
+     ConfigManager::loadConfig(config);
+     Serial.println(config.toJson());
     // WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
     // it is a good practice to make sure your code sets wifi mode how you want it.
 
