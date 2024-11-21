@@ -95,4 +95,8 @@ void MqttManager::publishDiscoveryMessage()
     serializeJson(doc, message);
 
     publish(DISCOVERY_TOPIC, message.c_str());
+    //  publish("DISCOVERY_TOPIC1", message.c_str());
+    //  publish("DISCOVERY_TOPIC/1/", message.c_str());
+    //   publish("homeassistant/1/", message.c_str());
+    //  publish("homeassistant/light/my_light_1/config", message.c_str());
 }
