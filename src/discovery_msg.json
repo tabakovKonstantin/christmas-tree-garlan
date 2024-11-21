@@ -1,0 +1,26 @@
+{
+    "name": "Christmas garland",
+    "unique_id": "c64b231c003d",
+    "command_topic": "home/lights/c64b231c003d/set",
+    "device": {
+        "identifiers": [
+            "c64b231c003d"
+        ],
+        "manufacturer": "Tabakov",
+        "model": "Smart Christmas garland",
+        "name": "Smart Christmas garland",
+        "sw_version": "0.0.1"
+    },
+    "brightness": true,
+    "rgb": true,
+    "supported_color_modes": [
+        "rgb"
+    ],
+    "effect": true,
+    "effect_list": [
+        "effect1",
+        "effect2"
+    ],
+    "schema": "json",
+    "optimistic": true
+}
