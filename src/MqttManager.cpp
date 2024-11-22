@@ -1,102 +1,152 @@
 #include "MqttManager.h"
 #include "ConfigManager.h"
-#include "Payload.h"
-// #include "LedControl.h"
+//#include <AsyncMqttClient.h>
+#include <Ticker.h>
+#include <ArduinoJson.h>
 
-const char *DISCOVERY_TOPIC = "homeassistant/light/my_light_1/config";
-const char *COMAND_TOPIC = "home/lights/my_light_1/set";
+#define DISCOVERY_TOPIC "homeassistant/light/my_light_1/config"
+#define COMMAND_TOPIC "home/lights/my_light_1/set"
+#define MQTT_HOST IPAddress(192, 168, 100, 115)
+#define MQTT_PORT 1883
 
-MqttManager::MqttManager() : client(espClient)
-{
-    
-}
 
-void MqttManager::initMQTT()
-{
-     Serial.println(config.toJson());
+AsyncMqttClient mqttClient;
+Ticker mqttReconnectTimer;
+Ticker wifiReconnectTimer;
+
+WiFiEventHandler wifiConnectHandler;
+WiFiEventHandler wifiDisconnectHandler;
+
+// Конструктор
+MqttManager::MqttManager() {
      ConfigManager::loadConfig(config);
-      Serial.println(config.toJson());
-    client.setServer(config.mqttServer.c_str(), config.mqttPort);
-    client.setCallback([this](char *topic, byte *payload, unsigned int length)
-                       { callback(topic, payload, length); });
+}
 
-    while (!client.connected())
-    {
-        Serial.println("Попытка подключения к MQTT брокеру...");
+// Метод для инициализации подключения
+void MqttManager::init() {
+    Serial.println("Initializing MQTT Manager...");
 
-        if (client.connect("ESP8266"))
-        {
-            Serial.println("Подключено к MQTT брокеру.");
-            publishDiscoveryMessage();
-            client.subscribe(COMAND_TOPIC);
-        }  else {
+    // wifiConnectHandler = WiFi.onStationModeGotIP([this](const WiFiEventStationModeGotIP &event) {
+    //     this->onWifiConnect(event);
+    // });
+    // wifiDisconnectHandler = WiFi.onStationModeDisconnected([this](const WiFiEventStationModeDisconnected &event) {
+    //     this->onWifiDisconnect(event);
+    // });
 
-        delay(5000);
-        Serial.println(String("Не удалось подключиться. Ошибка: ") + client.state());
-        }
+    
+
+    mqttClient.onConnect([this](bool sessionPresent) { this->onMqttConnect(sessionPresent); });
+    mqttClient.onDisconnect([this](AsyncMqttClientDisconnectReason reason) { this->onMqttDisconnect(reason); });
+    mqttClient.onSubscribe([this](uint16_t packetId, uint8_t qos) { this->onMqttSubscribe(packetId, qos); });
+    mqttClient.onUnsubscribe([this](uint16_t packetId) { this->onMqttUnsubscribe(packetId); });
+    mqttClient.onMessage([this](char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
+        this->onMqttMessage(topic, payload, properties, len, index, total);
+    });
+    mqttClient.onPublish([this](uint16_t packetId) { this->onMqttPublish(packetId); });
+
+    mqttClient.setServer(MQTT_HOST, MQTT_PORT);
+
+   mqttClient.connect();
+}
+
+
+// Подключение к MQTT
+void MqttManager::connectToMqtt() {
+    Serial.println("Connecting to MQTT...");
+    mqttClient.connect();
+}
+
+// Обработчик подключения к Wi-Fi
+void MqttManager::onWifiConnect(const WiFiEventStationModeGotIP &event) {
+    Serial.println("Connected to Wi-Fi.");
+    connectToMqtt();
+}
+
+// Обработчик отключения от Wi-Fi
+void MqttManager::onWifiDisconnect(const WiFiEventStationModeDisconnected &event) {
+    Serial.println("Disconnected from Wi-Fi.");
+    mqttReconnectTimer.detach();
+    //wifiReconnectTimer.once(2, [this]() { this->connectToWifi(); });
+}
+
+// Обработчик подключения к MQTT
+void MqttManager::onMqttConnect(bool sessionPresent) {
+    Serial.println("Connected to MQTT.");
+    Serial.print("Session present: ");
+    Serial.println(sessionPresent);
+
+    // Подписываемся на команды
+    mqttClient.subscribe(COMMAND_TOPIC, 2);
+
+    // Публикуем сообщение для автоматической конфигурации Home Assistant
+    publishDiscoveryMessage();
+}
+
+// Обработчик отключения от MQTT
+void MqttManager::onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
+    Serial.println("Disconnected from MQTT.");
+    if (WiFi.isConnected()) {
+        mqttReconnectTimer.once(2, [this]() { this->connectToMqtt(); });
     }
 }
 
-void MqttManager::callback(char *topic, byte *payload, unsigned int length)
-{
-    String message = String((char*)payload);  
-    Serial.println("Received message: " + message);
-
-    Payload incomingPayload;
-    if (incomingPayload.fromJson(message))
-    {
-        Serial.println("Successfully parsed JSON message.");
-        Serial.println(incomingPayload.toJson());
-         Serial.println(incomingPayload.brightness);
-         Serial.println(incomingPayload.effect);
-        // changeState(incomingPayload);
-    }
-    else
-    {
-        Serial.println("Failed to parse JSON message.");
-    }
+// Обработчик подписки
+void MqttManager::onMqttSubscribe(uint16_t packetId, uint8_t qos) {
+    Serial.println("Subscribe acknowledged.");
+    Serial.print("  packetId: ");
+    Serial.println(packetId);
+    Serial.print("  qos: ");
+    Serial.println(qos);
 }
 
-void MqttManager::handleMQTT()
-{
-    if (!client.connected())
-    {
-        initMQTT();
+// Обработчик отписки
+void MqttManager::onMqttUnsubscribe(uint16_t packetId) {
+    Serial.println("Unsubscribe acknowledged.");
+    Serial.print("  packetId: ");
+    Serial.println(packetId);
+}
+
+// Обработчик входящих сообщений
+void MqttManager::onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
+    Serial.println("Publish received.");
+    Serial.print("  topic: ");
+    Serial.println(topic);
+    Serial.print("  payload: ");
+    for (size_t i = 0; i < len; i++) {
+        Serial.print(payload[i]);
     }
-    client.loop();
+    Serial.println();
 }
 
-void MqttManager::publish(const char *topic, const char *message)
-{
-    Serial.println("Publishing to topic: " + String(topic));
-    Serial.println("Message: " + String(message));
-    client.publish(topic, message);
+// Обработчик публикации
+void MqttManager::onMqttPublish(uint16_t packetId) {
+    Serial.println("Publish acknowledged.");
+    Serial.print("  packetId: ");
+    Serial.println(packetId);
 }
 
-void MqttManager::publishDiscoveryMessage()
-{
-    JsonDocument doc;
-    doc["name"] = "My Light123";
+// Публикация сообщения конфигурации для Home Assistant
+void MqttManager::publishDiscoveryMessage() {
+    StaticJsonDocument<512> doc;
+    doc["name"] = "My Light";
     doc["unique_id"] = "my_light_1";
-    // doc["state_topic"] = "home/lights/my_light_1/state";
-    doc["command_topic"] = COMAND_TOPIC;
+    doc["command_topic"] = COMMAND_TOPIC;
     doc["brightness"] = true;
     doc["rgb"] = true;
-    JsonArray colorModes = doc["supported_color_modes"].to<JsonArray>();
+
+    JsonArray colorModes = doc.createNestedArray("supported_color_modes");
     colorModes.add("rgb");
+
     doc["effect"] = true;
-    JsonArray effectList = doc["effect_list"].to<JsonArray>();
-    effectList.add("e22");
-    effectList.add("e1");
+    JsonArray effectList = doc.createNestedArray("effect_list");
+    effectList.add("effect1");
+    effectList.add("effect2");
+
     doc["schema"] = "json";
     doc["optimistic"] = true;
 
     String message;
     serializeJson(doc, message);
 
-    publish(DISCOVERY_TOPIC, message.c_str());
-    //  publish("DISCOVERY_TOPIC1", message.c_str());
-    //  publish("DISCOVERY_TOPIC/1/", message.c_str());
-    //   publish("homeassistant/1/", message.c_str());
-    //  publish("homeassistant/light/my_light_1/config", message.c_str());
+    mqttClient.publish(DISCOVERY_TOPIC, 1, true, message.c_str());
 }

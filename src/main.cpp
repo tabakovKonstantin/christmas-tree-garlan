@@ -23,7 +23,8 @@ void setup() {
     //  ConfigManager::loadConfig(config);
     //  Serial.println(config.toJson());
 
-    //mqttManager.initMQTT();
+    mqttManager.init();
+    // mqttManager.connectToMqtt();
 
     //delay(3000); // power-up safety delay
     initLEDs();
