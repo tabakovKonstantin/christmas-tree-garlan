@@ -1,5 +1,6 @@
 #include "MqttManager.h"
 #include "ConfigManager.h"
+#include "LedControl.h"
 //#include <AsyncMqttClient.h>
 #include <Ticker.h>
 #include <ArduinoJson.h>
@@ -112,9 +113,26 @@ void MqttManager::onMqttMessage(char *topic, char *payload, AsyncMqttClientMessa
     Serial.print("  topic: ");
     Serial.println(topic);
     Serial.print("  payload: ");
-    for (size_t i = 0; i < len; i++) {
-        Serial.print(payload[i]);
+    // for (size_t i = 0; i < len; i++) {
+    //     Serial.print(payload[i]);
+    // }
+     String message = String((char*)payload);  
+    Serial.println("Received message: " + message);
+
+    Payload incomingPayload;
+    if (incomingPayload.fromJson(message))
+    {
+        Serial.println("Successfully parsed JSON message.");
+        Serial.println(incomingPayload.toJson());
+         Serial.println(incomingPayload.brightness);
+         Serial.println(incomingPayload.effect);
+        changeState(incomingPayload);
     }
+    else
+    {
+        Serial.println("Failed to parse JSON message.");
+    }
+    // changeState(incomingPayload);
     Serial.println();
 }
 

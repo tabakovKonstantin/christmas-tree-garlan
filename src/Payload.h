@@ -45,12 +45,12 @@ public:
             return false;
         }
 
-        brightness = doc["brightness"];
+        brightness = doc["brightness"].isNull() ? -1 : doc["brightness"];
         color_mode = doc["color_mode"].as<String>();
         color_temp = doc["color_temp"];
-        color.r = doc["color"]["r"];
-        color.g = doc["color"]["g"];
-        color.b = doc["color"]["b"];
+        color.r = doc["color"]["r"].isNull() ? -1 : doc["color"]["r"];
+        color.g = doc["color"]["g"].isNull() ? -1 : doc["color"]["g"];
+        color.b = doc["color"]["b"].isNull() ? -1 : doc["color"]["b"];
         effect = doc["effect"].as<String>();
         state = doc["state"].as<String>();
         transition = doc["transition"];

@@ -24,13 +24,18 @@ void initLEDs()
 void changeState(const Payload &payload)
 {
 
-    setLEDBrightness(payload.brightness);
-
-    if (payload.color_mode == "rgb")
-    {
-        uint32_t color = (payload.color.r << 16) | (payload.color.g << 8) | payload.color.b;
-        setLEDColor(color);
+    if(payload.brightness != -1) {
+        setLEDBrightness(payload.brightness);
     }
+
+    // if (payload.color_mode == "rgb")
+    // {
+        if(payload.color.r  != -1 && payload.color.g  != -1 && payload.color.b != -1) {
+            uint32_t color = (payload.color.r << 16) | (payload.color.g << 8) | payload.color.b;
+            setLEDColor(color);
+        }
+        
+    // }
 
     if (payload.effect != "")
     {

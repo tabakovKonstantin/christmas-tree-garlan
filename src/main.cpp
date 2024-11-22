@@ -1,4 +1,3 @@
-// #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 #include <Arduino.h>
 #include "ConnectManager.h"
 #include "FileManager.h"
@@ -18,15 +17,8 @@ void setup() {
     }
 
     initWiFi();
-
-    //  Config config;
-    //  ConfigManager::loadConfig(config);
-    //  Serial.println(config.toJson());
-
     mqttManager.init();
-    // mqttManager.connectToMqtt();
-
-    //delay(3000); // power-up safety delay
+   
     initLEDs();
     uint32_t color = (123 << 16) | (124 << 8) | 23;
     setLEDColor(color);
@@ -34,9 +26,5 @@ void setup() {
    
 }
 
-void loop() {
- 
-    
-  //mqttManager.handleMQTT();
-    // put your main code here, to run repeatedly:   
+void loop() {  
 }
