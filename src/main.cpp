@@ -4,6 +4,7 @@
 #include "ConfigManager.h"
 #include "MqttManager.h"
 #include "LedControl.h"
+#include <FastLED.h>
 
 MqttManager mqttManager;
 
@@ -20,11 +21,8 @@ void setup() {
     mqttManager.init();
    
     initLEDs();
-    uint32_t color = (123 << 16) | (124 << 8) | 23;
-    setLEDColor(color);
-    
-   
 }
 
 void loop() {  
+    FastLED.show();
 }

@@ -7,6 +7,9 @@ Config config;
 
 void initWiFi()
 {
+    Serial.println();
+    Serial.println("Initializing WiFi...");
+
     WiFiManagerParameter mqttServer("mqtt_server", "MQTT Broker", "192.168.100.115", 40);
     WiFiManagerParameter mqttPort("mqtt_port", "MQTT Broker port", "1883", 40);
     wifiManager.addParameter(&mqttServer);
@@ -22,8 +25,6 @@ void initWiFi()
 
     config.mqttServer = mqttServer.getValue();
     config.mqttPort = String(mqttPort.getValue()).toInt();
-
-    Serial.println(config.toJson());
 
     ConfigManager::saveConfig(config);
 }

@@ -64,6 +64,7 @@ void MqttManager::onMqttDisconnect(AsyncMqttClientDisconnectReason reason)
 
 void MqttManager::onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
 {
+    Serial.println();
     Serial.println("Message received.");
     Serial.print("  topic: ");
     Serial.println(topic);
@@ -75,13 +76,13 @@ void MqttManager::onMqttMessage(char *topic, char *payload, AsyncMqttClientMessa
     Payload incomingPayload;
     if (incomingPayload.fromJson(message))
     {
-        Serial.println("  parsed JSON: ");
-        Serial.print(incomingPayload.toJson());
+        Serial.print("  parsed JSON: ");
+        Serial.println(incomingPayload.toJson());
         changeState(incomingPayload);
         return;
     }
 
-    Serial.println("Failed to parse JSON message.");
+    Serial.print("Failed to parse JSON message.");
 }
 
 void MqttManager::publishDiscoveryMessage()

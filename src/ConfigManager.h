@@ -22,4 +22,4 @@ public:
     }
 };
 
-#endif // CONFIG_MANAGER_H
+#endif
