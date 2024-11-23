@@ -21,6 +21,7 @@ MqttManager::MqttManager()
 
 void MqttManager::init()
 {
+    Serial.println();
     Serial.println("Initializing MQTT Manager...");
 
     mqttClient.onConnect([this](bool sessionPresent)
@@ -30,7 +31,18 @@ void MqttManager::init()
     mqttClient.onMessage([this](char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
                          { this->onMqttMessage(topic, payload, properties, len, index, total); });
 
-    mqttClient.setServer(MQTT_HOST, MQTT_PORT);
+    IPAddress mqttIP;
+    ConfigManager::loadConfig(config);
+    if (mqttIP.fromString(config.mqttServer.c_str()))
+    {
+        mqttClient.setServer(mqttIP, config.mqttPort);
+    }
+    else
+    {
+        Serial.println("Invalid IP address format.");
+        Serial.println(config.mqttServer);
+        return;
+    }
 
     connectToMqtt();
 }

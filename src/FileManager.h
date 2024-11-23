@@ -17,15 +17,17 @@ public:
         File file = LittleFS.open(filename, "w");
         if (!file)
         {
+            Serial.println();
             Serial.print("Ошибка открытия файла для записи: ");
             Serial.println(filename);
             return false;
         }
         file.print(data);
         file.close();
+        Serial.println();
         Serial.print("Записано в файл: ");
-        Serial.println(filename);
-        Serial.println(" данные: ");
+        Serial.print(filename);
+        Serial.print(" данные: ");
         Serial.println(data);
         return true;
     }
@@ -35,15 +37,17 @@ public:
         File file = LittleFS.open(filename, "r");
         if (!file)
         {
-            Serial.println("Ошибка открытия файла для чтения: ");
-            Serial.print(filename);
+            Serial.println();
+            Serial.print("Ошибка открытия файла для чтения: ");
+            Serial.println(filename);
             return "";
         }
         String data = file.readString();
         file.close();
+        Serial.println();
         Serial.print("Прочтено из файла: ");
-        Serial.println(filename);
-        Serial.println(" данные: ");
+        Serial.print(filename);
+        Serial.print(" данные: ");
         Serial.println(data);
         return data;
     }

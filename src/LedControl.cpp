@@ -13,6 +13,7 @@ CRGB leds[NUM_LEDS];
 
 void initLEDs()
 {
+    Serial.println();
     Serial.println("Initializing LEDs...");
 
     delay(1000);
@@ -83,7 +84,8 @@ void setLEDBrightness(int brightness)
 
 void setLEDEffect(String effect)
 {
-    Serial.println("Set effect: ");
+    Serial.println();
+    Serial.print("Set effect: ");
     Serial.println(effect);
     rainbowEffect();
 }
