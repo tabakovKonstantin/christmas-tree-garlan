@@ -1,6 +1,5 @@
 #include "MqttManager.h"
 #include "ConfigManager.h"
-#include "LedControl.h"
 #include <Ticker.h>
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
@@ -12,7 +11,7 @@
 AsyncMqttClient mqttClient;
 Ticker mqttReconnectTimer;
 
-MqttManager::MqttManager()
+MqttManager::MqttManager(LedControl &led_Control) : ledControl(led_Control)
 {
 }
 
@@ -87,7 +86,7 @@ void MqttManager::onMqttMessage(char *topic, char *payload, AsyncMqttClientMessa
     {
         Serial.print("  parsed JSON: ");
         Serial.println(incomingPayload.toJson());
-        changeState(incomingPayload);
+        ledControl.changeState(incomingPayload);
         return;
     }
 

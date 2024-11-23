@@ -4,9 +4,11 @@
 #include "ConfigManager.h"
 #include "MqttManager.h"
 #include "LedControl.h"
-#include <FastLED.h>
 
-MqttManager mqttManager;
+
+EffectManager effectManager;
+LedControl ledControl(effectManager);
+MqttManager mqttManager(ledControl);
 
 void setup() {
    Serial.begin(115200);
@@ -18,9 +20,9 @@ void setup() {
     }
 
     initWiFi();
+    ledControl.initLEDs();
     mqttManager.init();
-   
-    initLEDs();
+    
 }
 
 void loop() {  

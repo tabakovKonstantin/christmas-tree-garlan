@@ -2,16 +2,18 @@
 #define MqttManager_h
 
 #include "Config.h"
+#include "LedControl.h"
 #include <AsyncMqttClient.h>
 
 class MqttManager
 {
 public:
-    MqttManager();
+    MqttManager(LedControl& led_Control);
     void init();
 
 private:
     Config config;
+    LedControl& ledControl;
 
     void connectToMqtt();
     void onMqttConnect(bool sessionPresent);
