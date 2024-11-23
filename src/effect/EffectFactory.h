@@ -4,6 +4,7 @@
 #include "Effect.h"
 #include "RainbowEffect.h"
 #include "SparkleEffect.h"
+#include "SmoothWaveEffect.h"
 
 class EffectFactory
 {
@@ -16,7 +17,7 @@ public:
             return new RainbowEffect();
         }
         if (effectName == "effect1") {
-            return new SparkleEffect();
+            return new SmoothWaveEffect();
         }
 
         return nullptr;

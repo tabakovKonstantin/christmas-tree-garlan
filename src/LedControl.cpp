@@ -8,7 +8,7 @@ void LedControl::initLEDs()
     Serial.println("Initializing LEDs...");
     delay(1000);
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-    FastLED.delay(1000 / UPDATES_PER_SECOND);
+    FastLED.delay(UPDATES_PER_SECOND);
     FastLED.setBrightness(BRIGHTNESS);
     FastLED.clear(true);
     FastLED.show();
