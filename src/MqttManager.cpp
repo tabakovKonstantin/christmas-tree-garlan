@@ -5,18 +5,15 @@
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
 
-#define DISCOVERY_TOPIC "homeassistant/light/my_light_1/config"
-#define COMMAND_TOPIC "home/lights/my_light_1/set"
-#define MQTT_HOST IPAddress(192, 168, 100, 115)
-#define MQTT_PORT 1883
+#define PRODUCT_ID "c64b231c003d"
+#define DISCOVERY_TOPIC "homeassistant/light/" PRODUCT_ID "/config"
+#define COMMAND_TOPIC "home/lights/" PRODUCT_ID "/set"
 
 AsyncMqttClient mqttClient;
 Ticker mqttReconnectTimer;
-Ticker wifiReconnectTimer;
 
 MqttManager::MqttManager()
 {
-    ConfigManager::loadConfig(config);
 }
 
 void MqttManager::init()
@@ -100,11 +97,17 @@ void MqttManager::onMqttMessage(char *topic, char *payload, AsyncMqttClientMessa
 void MqttManager::publishDiscoveryMessage()
 {
     JsonDocument doc;
-    doc["name"] = "My Light";
-    doc["unique_id"] = "my_light_1";
+    doc["name"] = "Christmas garland";
+    doc["unique_id"] = PRODUCT_ID;
     doc["command_topic"] = COMMAND_TOPIC;
-    doc["brightness"] = true;
-    doc["rgb"] = true;
+
+    JsonObject device = doc.createNestedObject("device");
+    JsonArray identifiers = device.createNestedArray("identifiers");
+    identifiers.add(PRODUCT_ID);
+    device["manufacturer"] = "Tabakov";
+    device["model"] = "Home";
+    device["name"] = "Christmas garland";
+    device["sw_version"] = "0.0.1";
 
     JsonArray colorModes = doc.createNestedArray("supported_color_modes");
     colorModes.add("rgb");
