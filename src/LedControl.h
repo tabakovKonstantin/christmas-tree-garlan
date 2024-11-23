@@ -26,4 +26,4 @@ public:
     void setLEDEffect(String effect);
 };
 
-#endif // LED_CONTROL_H
+#endif

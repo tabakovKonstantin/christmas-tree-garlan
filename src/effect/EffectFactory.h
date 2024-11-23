@@ -3,6 +3,7 @@
 
 #include "Effect.h"
 #include "RainbowEffect.h"
+#include "SparkleEffect.h"
 
 class EffectFactory
 {
@@ -14,9 +15,9 @@ public:
         {
             return new RainbowEffect();
         }
-        // if (effectName == "chase") {
-        //     return new ChaseEffect();
-        // }
+        if (effectName == "effect1") {
+            return new SparkleEffect();
+        }
 
         return nullptr;
     }
