@@ -26,6 +26,9 @@ void initLEDs()
 void changeState(const Payload &payload)
 {
 
+    Serial.println();
+    Serial.println("Applaying new state ..");
+
     if (payload.brightness != -1)
     {
         setLEDBrightness(payload.brightness);
@@ -54,28 +57,20 @@ void changeState(const Payload &payload)
         Serial.println();
         Serial.println("Turn off");
         FastLED.clear();
-        // FastLED.show();
     }
-}
-
-void getVoltage()
-{
-    float voltage = ESP.getVcc() / 1024.0; // Возвращает значение в мВ, преобразуем в В
-    Serial.print("Напряжение питания: ");
-    Serial.print(voltage);
-    Serial.println(" В");
+    Serial.println();
+    Serial.println("Applaying has finished");
 }
 
 void setLEDColor(uint32_t color)
 {
     Serial.println();
     Serial.print("Set color: ");
-    Serial.print(color);
+    Serial.println(color);
     for (int i = 0; i < NUM_LEDS; i++)
     {
         leds[i] = color;
     }
-    // FastLED.show();
 }
 
 void setLEDBrightness(int brightness)
@@ -84,12 +79,11 @@ void setLEDBrightness(int brightness)
     Serial.print("Set brightness: ");
     Serial.println(brightness);
     FastLED.setBrightness(brightness);
-    // FastLED.show();
 }
 
 void setLEDEffect(String effect)
 {
-    Serial.print("Set effect: ");
+    Serial.println("Set effect: ");
     Serial.println(effect);
     rainbowEffect();
 }
@@ -102,5 +96,4 @@ void rainbowEffect()
         leds[i] = CHSV((i * 10 + gHue) % 255, 255, 255);
     }
     gHue++;
-    // FastLED.show();
 }
