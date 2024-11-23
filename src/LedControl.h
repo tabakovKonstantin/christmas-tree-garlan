@@ -10,5 +10,7 @@ void changeState(const Payload& payload);
 void setLEDColor(uint32_t color);
 void setLEDBrightness(int brightness);
 void setLEDEffect(String effect);
+void rainbowEffect();
+// void getVoltage();
 
 #endif
