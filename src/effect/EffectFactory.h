@@ -11,13 +11,18 @@ class EffectFactory
 public:
     static Effect *createEffect(const String &effectName)
     {
-        // if (effectName == "rainbow")
-        if (effectName == "effect2")
+        if (effectName == "Rainbow")
         {
             return new RainbowEffect();
         }
-        if (effectName == "effect1") {
+
+        if (effectName == "Smooth wave") {
             return new SmoothWaveEffect();
+        }
+
+        if (effectName == "Sparkle")
+        {
+            return new SparkleEffect();
         }
 
         return nullptr;

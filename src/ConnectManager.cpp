@@ -15,7 +15,7 @@ void initWiFi()
     wifiManager.addParameter(&mqttServer);
     wifiManager.addParameter(&mqttPort);
 
-    if (!wifiManager.autoConnect())
+    if (!wifiManager.autoConnect(getSsidWithChipId().c_str()))
     {
         Serial.println("WiFi подключение не удалось");
         ESP.restart();
@@ -27,4 +27,14 @@ void initWiFi()
     config.mqttPort = String(mqttPort.getValue()).toInt();
 
     ConfigManager::saveConfig(config);
+}
+
+String getSsidWithChipId() {
+    uint32_t chipId = ESP.getChipId();
+    char chipIdStr[11];
+    itoa(chipId, chipIdStr, 10);
+
+    String ssid = "Garland-" + String(chipIdStr);
+
+    return ssid;
 }

@@ -4,10 +4,6 @@
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
 
-#define PRODUCT_ID "c64b231c003d"
-#define DISCOVERY_TOPIC "homeassistant/light/" PRODUCT_ID "/config"
-#define COMMAND_TOPIC "home/lights/" PRODUCT_ID "/set"
-
 AsyncMqttClient mqttClient;
 Ticker mqttReconnectTimer;
 
@@ -55,7 +51,7 @@ void MqttManager::onMqttConnect(bool sessionPresent)
     Serial.print("Session present: ");
     Serial.println(sessionPresent);
 
-    mqttClient.subscribe(COMMAND_TOPIC, 2);
+    mqttClient.subscribe(getCommandTopic().c_str(), 2);
 
     publishDiscoveryMessage();
 }
@@ -97,24 +93,25 @@ void MqttManager::publishDiscoveryMessage()
 {
     JsonDocument doc;
     doc["name"] = "Christmas garland";
-    doc["unique_id"] = PRODUCT_ID;
-    doc["command_topic"] = COMMAND_TOPIC;
+    doc["unique_id"] = getProductId();
+    doc["command_topic"] = getCommandTopic();
 
-    JsonObject device = doc.createNestedObject("device");
-    JsonArray identifiers = device.createNestedArray("identifiers");
-    identifiers.add(PRODUCT_ID);
+    JsonObject device = doc["device"].to<JsonObject>();
+    JsonArray identifiers = device["identifiers"].to<JsonArray>();
+    identifiers.add(getProductId());
     device["manufacturer"] = "Tabakov";
     device["model"] = "Home";
     device["name"] = "Christmas garland";
     device["sw_version"] = "0.0.1";
 
-    JsonArray colorModes = doc.createNestedArray("supported_color_modes");
+    JsonArray colorModes = doc["supported_color_modes"].to<JsonArray>();
     colorModes.add("rgb");
 
     doc["effect"] = true;
-    JsonArray effectList = doc.createNestedArray("effect_list");
-    effectList.add("effect1");
-    effectList.add("effect2");
+    JsonArray effectList = doc["effect_list"].to<JsonArray>();
+    effectList.add("Rainbow");
+    effectList.add("Smooth wave");
+    effectList.add("Sparkle");
 
     doc["schema"] = "json";
     doc["optimistic"] = true;
@@ -122,5 +119,32 @@ void MqttManager::publishDiscoveryMessage()
     String message;
     serializeJson(doc, message);
 
-    mqttClient.publish(DISCOVERY_TOPIC, 1, true, message.c_str());
+    mqttClient.publish(getDiscoveryTopic().c_str(), 1, true, message.c_str());
+}
+
+String MqttManager::getProductId()
+{
+    char chipIdStr[11];
+    itoa(ESP.getChipId(), chipIdStr, 10);
+    return "garland-" + String(chipIdStr);;
+}
+
+String MqttManager::getDiscoveryTopic()
+{
+    String productId = getProductId();
+
+    char discoveryTopic[100];
+    snprintf(discoveryTopic, sizeof(discoveryTopic), DISCOVERY_TOPIC_TEMPLATE, productId.c_str());
+
+    return String(discoveryTopic);
+}
+
+String MqttManager::getCommandTopic()
+{
+    String productId = getProductId();
+
+    char commandTopic[100];
+    snprintf(commandTopic, sizeof(commandTopic), COMMAND_TOPIC_TEMPLATE, productId.c_str());
+
+    return String(commandTopic);
 }
