@@ -72,6 +72,12 @@ Below is the wiring diagram for connecting the **ESP8266** to the **LED Strip** 
                           |                 |  | 330 Ohm |  |                 |
                           +-----------------+  +---------+  +-----------------+
 ```
+2. **STL Model for 3D Printing**:
+   - A custom STL model is provided in the repository for printing a case to house the ESP8266 and protect the wiring.
+   - The STL file is located in the `/assets` directory of this repository.
+   - To print:
+     - Use your favorite slicer software (e.g., Cura, PrusaSlicer).
+     - Recommended settings: **PLA filament**, **0.2mm layer height**.
 
 ## 🔧 Installation
 
