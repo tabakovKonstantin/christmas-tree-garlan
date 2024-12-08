@@ -5,6 +5,7 @@
 #include "MqttManager.h"
 #include "LedControl.h"
 #include <ESP8266WiFi.h>
+#define FLASH_BUTTON_PIN 0 
 
 EffectManager effectManager;
 LedControl ledControl(effectManager);
@@ -20,18 +21,25 @@ void setup()
     return;
   }
 
-  initWiFi();
-
   ledControl.initLEDs();
 
-  if (WiFi.getMode() == WIFI_STA) {
+  Serial.println("!!!!");
+  initWiFi();
+
+  if (WiFi.getMode() == WIFI_STA)
+  {
     Serial.println("Currently in Station mode (STA)");
     mqttManager.init();
-  } 
-  
+  }
 }
 
 void loop()
 {
   FastLED.show();
+  
+  // bool reading = digitalRead(FLASH_BUTTON_PIN) == LOW;
+  // if (reading) {
+  //  ConfigManager::eraseConfig();
+  // }
+
 }

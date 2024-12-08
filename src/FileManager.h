@@ -7,7 +7,6 @@ class FileManager
 {
 public:
     static bool begin()
-
     {
         return LittleFS.begin();
     }
@@ -50,6 +49,22 @@ public:
         Serial.print(" данные: ");
         Serial.println(data);
         return data;
+    }
+
+    static void removeFile(const char *filename)
+    {
+        if (LittleFS.exists(filename))
+        {
+            if (LittleFS.remove(filename))
+            {
+                Serial.println("File removed successfully.");
+            }
+
+            Serial.println("Failed to remove file.");
+            return;
+        }
+        Serial.println("File does not exist.");
+        return;
     }
 };
 
