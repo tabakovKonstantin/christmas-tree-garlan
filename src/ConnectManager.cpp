@@ -1,8 +1,7 @@
 #include "ConnectManager.h"
 #include "ConfigManager.h"
-#include <WiFiManager.h>
+#include <ESP8266WiFi.h>
 
-WiFiManager wifiManager;
 Config config;
 
 void initWiFi()
@@ -10,26 +9,24 @@ void initWiFi()
     Serial.println();
     Serial.println("Initializing WiFi...");
 
-    WiFiManagerParameter mqttServer("mqtt_server", "MQTT Broker", "192.168.100.115", 40);
-    WiFiManagerParameter mqttPort("mqtt_port", "MQTT Broker port", "1883", 40);
-    wifiManager.addParameter(&mqttServer);
-    wifiManager.addParameter(&mqttPort);
+    const char *ssid = "A1_CA2F";
+    const char *password = "48575443202C3FAA";
 
-    if (!wifiManager.autoConnect(getSsidWithChipId().c_str()))
+    WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED)
     {
-        Serial.println("WiFi подключение не удалось");
-        ESP.restart();
+        delay(1000);
+        Serial.println("Connecting to WiFi...");
     }
-
-    Serial.println("Подключено к WiFi. IP-адрес: " + WiFi.localIP().toString());
-
-    config.mqttServer = mqttServer.getValue();
-    config.mqttPort = String(mqttPort.getValue()).toInt();
+    
+    config.mqttServer = "192.168.100.115";
+    config.mqttPort = 1883;
 
     ConfigManager::saveConfig(config);
 }
 
-String getSsidWithChipId() {
+String getSsidWithChipId()
+{
     uint32_t chipId = ESP.getChipId();
     char chipIdStr[11];
     itoa(chipId, chipIdStr, 10);
